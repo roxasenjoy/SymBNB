@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Ad;
+use App\Entity\Image;
 use App\Form\AdType;
 use App\Repository\AdRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -44,16 +45,22 @@ class AdController extends AbstractController
         $ad = new Ad();
 
         $form = $this->createForm(AdType::class, $ad);
-
         $form->handleRequest($request);
 
-
+        // Message de validation de l'annonce
         $this->addFlash(
             'success',
             "L'annonce <strong> {$ad->getTitle()} </strong> a bien été enregistrée ! "
         );
 
         if($form->isSubmitted() && $form->isValid()){
+
+            // Obtenir toutes les images ajouter grâce à notre CollectionType
+            foreach($ad->getImages() as $image){
+                $image->setAd($ad);
+                $manager->persist($image);
+            }
+
             $manager->persist($ad);
             $manager->flush();
 
